@@ -45,7 +45,7 @@ resource "aws_lb_listener" "rancher_https" {
 resource "aws_lb" "rancher_lb" {
   name               = "rancher-elb"
   subnets = ["${var.vpc_subnet_ids}"]
-  security_groups = ["${aws_security_group.rancher_elb.id}"]
+  security_groups = ["${aws_security_group.rancher_elb.id}", "${var.security_groups}"]
   load_balancer_type = "application"
 
   tags = {

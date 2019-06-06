@@ -26,6 +26,6 @@ variable "acme_registration_email" {
   default = "no-reply@example.com"
 }
 
-variable "ingress_cidr_blocks" {
+variable "security_groups" {
   type = "list"
 }
