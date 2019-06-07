@@ -10,6 +10,8 @@ resource "aws_lb_target_group" "rancher" {
   protocol = "HTTPS"
 
   vpc_id   = "${var.vpc_id}"
+
+  tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
 }
 
 resource "aws_lb_listener" "rancher_http" {
@@ -48,7 +50,5 @@ resource "aws_lb" "rancher_lb" {
   security_groups = ["${aws_security_group.rancher_elb.id}", "${var.security_groups}"]
   load_balancer_type = "application"
 
-  tags = {
-    Name = "rancher-elb"
-  }
+  tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
 }

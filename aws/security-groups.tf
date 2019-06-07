@@ -8,6 +8,8 @@ resource "aws_security_group" "rancher_ec2" {
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
 }
 
 resource "aws_security_group_rule" "rancher_ec2_from_elb" {
@@ -24,6 +26,8 @@ resource "aws_security_group" "rancher_elb" {
   name = "rancher_elb"
   description = "Allow all inbound traffic"
   vpc_id = "${var.vpc_id}"
+
+  tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
 }
 
 resource "aws_security_group_rule" "rancher_elb" {

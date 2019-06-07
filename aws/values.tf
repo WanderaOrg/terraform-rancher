@@ -33,3 +33,7 @@ variable "security_groups" {
 variable "rancher_image" {
   default = "rancher/rancher"
 }
+
+variable "resources_additional_tags" {
+  type = "map"
+}
