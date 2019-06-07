@@ -9,7 +9,7 @@ resource "aws_lb_target_group" "rancher" {
   port     = 8443
   protocol = "HTTPS"
 
-  vpc_id   = "${var.vpc_id}"
+  vpc_id = "${var.vpc_id}"
 
   tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
 }
@@ -46,8 +46,8 @@ resource "aws_lb_listener" "rancher_https" {
 # load balancer
 resource "aws_lb" "rancher_lb" {
   name               = "rancher-elb"
-  subnets = ["${var.vpc_subnet_ids}"]
-  security_groups = ["${aws_security_group.rancher_elb.id}", "${var.security_groups}"]
+  subnets            = ["${var.vpc_subnet_ids}"]
+  security_groups    = ["${aws_security_group.rancher_elb.id}", "${var.security_groups}"]
   load_balancer_type = "application"
 
   tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
