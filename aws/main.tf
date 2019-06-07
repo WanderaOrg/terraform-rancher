@@ -18,8 +18,8 @@ data "template_file" "user_data" {
 }
 
 resource "aws_instance" "rancher" {
-  ami = "ami-08d658f84a6d84a80"
-  instance_type = "t3.medium"
+  ami = "${var.rancher_ami}"
+  instance_type = "${var.rancher_instance_type}"
   availability_zone = "${var.instance_availability_zone}"
   subnet_id = "${var.vpc_subnet_id_instance}"
   key_name = "${aws_key_pair.rancher-key.key_name}"

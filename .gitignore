@@ -3,8 +3,4 @@
 *.tfstate.*
 *.tfvars
 
-main.tf
-terraform.tf
-variables.tf
-
 .idea/

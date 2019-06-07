@@ -30,10 +30,18 @@ variable "security_groups" {
   type = "list"
 }
 
+variable "resources_additional_tags" {
+  type = "map"
+}
+
 variable "rancher_image" {
   default = "rancher/rancher"
 }
 
-variable "resources_additional_tags" {
-  type = "map"
+variable "rancher_ami" {
+  default = "ami-08d658f84a6d84a80"
+}
+
+variable "rancher_instance_type" {
+  default = "t3.medium"
 }
