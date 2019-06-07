@@ -29,3 +29,7 @@ variable "acme_registration_email" {
 variable "security_groups" {
   type = "list"
 }
+
+variable "rancher_image" {
+  default = "rancher/rancher"
+}

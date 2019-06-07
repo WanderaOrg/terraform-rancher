@@ -12,6 +12,13 @@ resource "aws_volume_attachment" "ebs_att" {
   instance_id = "${aws_instance.rancher.id}"
 }
 
+data "template_file" "user_data" {
+  template = "${file("${path.module}/user-data.tpl")}"
+  vars = {
+    rancher_image = "${var.rancher_image}"
+  }
+}
+
 resource "aws_instance" "rancher" {
   ami = "ami-08d658f84a6d84a80"
   instance_type = "t3.medium"
@@ -28,7 +35,7 @@ resource "aws_instance" "rancher" {
     delete_on_termination = true
   }
 
-  user_data = "${base64encode(file("${path.module}/user-data.sh"))}"
+  user_data = "${base64encode("${data.template_file.user_data.rendered}")}"
 
   tags {
     Name = "rancher"
