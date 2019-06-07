@@ -1,12 +1,12 @@
-resource "aws_lb_target_group_attachment" "test" {
-  target_group_arn = "${aws_lb_target_group.rancher_target_group.arn}"
+resource "aws_lb_target_group_attachment" "rancher" {
+  target_group_arn = "${aws_lb_target_group.rancher.arn}"
   target_id        = "${aws_instance.rancher.id}"
-  port             = 443
+  port             = 8443
 }
 
-resource "aws_lb_target_group" "rancher_target_group" {
+resource "aws_lb_target_group" "rancher" {
   name     = "rancher-target-group"
-  port     = 443
+  port     = 8443
   protocol = "HTTPS"
 
   vpc_id   = "${var.vpc_id}"
@@ -37,7 +37,7 @@ resource "aws_lb_listener" "rancher_https" {
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.rancher_target_group.arn}"
+    target_group_arn = "${aws_lb_target_group.rancher.arn}"
   }
 }
 
