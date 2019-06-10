@@ -1,5 +1,5 @@
 resource "aws_ebs_volume" "rancher_ebs" {
-  availability_zone = "${var.instance_availability_zone}"
+  availability_zone = "${var.availability_zone}"
   size              = 20
   tags              = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }
@@ -21,7 +21,7 @@ data "template_file" "user_data" {
 resource "aws_instance" "rancher" {
   ami               = "${var.rancher_ami}"
   instance_type     = "${var.rancher_instance_type}"
-  availability_zone = "${var.instance_availability_zone}"
+  availability_zone = "${var.availability_zone}"
   subnet_id         = "${var.vpc_rancher_subnet_id}"
   key_name          = "${aws_key_pair.rancher-key.key_name}"
 
@@ -46,7 +46,7 @@ resource "aws_key_pair" "rancher-key" {
 resource "aws_route53_record" "rancher" {
   name    = "${var.domain_name}"
   type    = "A"
-  zone_id = "${var.domain_zone_id}"
+  zone_id = "${var.route53_zone_id}"
 
   alias {
     name                   = "${aws_lb.rancher_lb.dns_name}"

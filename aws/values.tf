@@ -8,15 +8,16 @@ variable "vpc_alb_subnet_ids" {
   type = "list"
 }
 
+# the subnet id should belond to the availability zone specified bellow
 variable "vpc_rancher_subnet_id" {}
 
-variable "instance_availability_zone" {}
+variable "availability_zone" {}
 
 variable "instance_public_key" {}
 
 variable "domain_name" {}
 
-variable "domain_zone_id" {}
+variable "route53_zone_id" {}
 
 variable "acme_server_url" {
   default = "https://acme-staging-v02.api.letsencrypt.org/directory"
