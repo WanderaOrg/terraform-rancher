@@ -22,7 +22,7 @@ resource "aws_instance" "rancher" {
   ami               = "${var.rancher_ami}"
   instance_type     = "${var.rancher_instance_type}"
   availability_zone = "${var.instance_availability_zone}"
-  subnet_id         = "${var.vpc_subnet_id_instance}"
+  subnet_id         = "${var.vpc_rancher_subnet_id}"
   key_name          = "${aws_key_pair.rancher-key.key_name}"
 
   vpc_security_group_ids = ["${concat(list(aws_security_group.rancher_ec2.id), var.security_groups)}"]

@@ -8,7 +8,7 @@ variable "vpc_subnet_ids" {
   type = "list"
 }
 
-variable "vpc_subnet_id_instance" {}
+variable "vpc_rancher_subnet_id" {}
 
 variable "instance_availability_zone" {}
 
