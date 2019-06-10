@@ -1,0 +1,16 @@
+language: go
+dist: trusty
+before_script:
+- curl --silent --output terraform.zip https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
+- sha256sum terraform.zip | grep "6b8ce67647a59b2a3f70199c304abca0ddec0e49fd060944c26f666298e23418"
+- unzip terraform.zip; rm -f terraform.zip; chmod +x terraform
+- mkdir -p ${HOME}/bin; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
+- terraform -v
+script:
+- echo 'script'
+- terraform fmt -check=true
+- export AWS_REGION=region
+- cd aws
+- terraform init
+- terraform validate -var "source=void" -var "aws_region=void" -var "vpc_id=void" -var "vpc_alb_subnet_ids=[]" -var "vpc_rancher_subnet_id=void" -var "availability_zone=void" -var "instance_public_key=void" -var "domain_name=void" -var "route53_zone_id=void" -var "acme_server_url=void" -var "acme_registration_email=void" -var "security_groups=[]" -var "rancher_image=void" -var "rancher_instance_type=void" -var "cloud_tags={}" -var "provider.aws.region=eu-west-01"
+- docker run --rm -v $(pwd):/app/ --workdir=/app/ -t wata727/tflint
