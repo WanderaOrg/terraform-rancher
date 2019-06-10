@@ -25,10 +25,7 @@ resource "aws_instance" "rancher" {
   subnet_id         = "${var.vpc_subnet_id_instance}"
   key_name          = "${aws_key_pair.rancher-key.key_name}"
 
-  vpc_security_group_ids = [
-    "${aws_security_group.rancher_ec2.id}",
-    "${var.security_groups}",
-  ]
+  vpc_security_group_ids = ["${concat(list(aws_security_group.rancher_ec2.id), var.security_groups)}"]
 
   root_block_device {
     volume_size           = 20
