@@ -4,7 +4,7 @@ variable "aws_region" {
 
 variable "vpc_id" {}
 
-variable "vpc_subnet_ids" {
+variable "vpc_alb_subnet_ids" {
   type = "list"
 }
 
