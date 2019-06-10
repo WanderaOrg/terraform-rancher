@@ -30,7 +30,7 @@ variable "security_groups" {
   type = "list"
 }
 
-variable "resources_additional_tags" {
+variable "cloud_tags" {
   type = "map"
 }
 

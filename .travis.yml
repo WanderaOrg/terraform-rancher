@@ -12,5 +12,5 @@ script:
 - export AWS_REGION=region
 - cd aws
 - terraform init
-- terraform validate -var "source=void" -var "aws_region=void" -var "vpc_id=void" -var "vpc_subnet_ids=[]" -var "vpc_subnet_id_instance=void" -var "instance_availability_zone=void" -var "instance_public_key=void" -var "domain_name=void" -var "domain_zone_id=void" -var "acme_server_url=void" -var "acme_registration_email=void" -var "security_groups=[]" -var "rancher_image=void" -var "rancher_instance_type=void" -var "resources_additional_tags={}" -var "provider.aws.region=eu-west-01"
+- terraform validate -var "source=void" -var "aws_region=void" -var "vpc_id=void" -var "vpc_subnet_ids=[]" -var "vpc_subnet_id_instance=void" -var "instance_availability_zone=void" -var "instance_public_key=void" -var "domain_name=void" -var "domain_zone_id=void" -var "acme_server_url=void" -var "acme_registration_email=void" -var "security_groups=[]" -var "rancher_image=void" -var "rancher_instance_type=void" -var "cloud_tags={}" -var "provider.aws.region=eu-west-01"
 - docker run --rm -v $(pwd):/app/ --workdir=/app/ -t wata727/tflint

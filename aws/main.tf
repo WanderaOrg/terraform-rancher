@@ -1,7 +1,7 @@
 resource "aws_ebs_volume" "rancher_ebs" {
   availability_zone = "${var.instance_availability_zone}"
   size              = 20
-  tags              = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
+  tags              = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }
 
 resource "aws_volume_attachment" "ebs_att" {
@@ -38,7 +38,7 @@ resource "aws_instance" "rancher" {
 
   user_data = "${base64encode("${data.template_file.user_data.rendered}")}"
 
-  tags = "${merge(map("Name", "rancher"), var.resources_additional_tags)}"
+  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }
 
 resource "aws_key_pair" "rancher-key" {
