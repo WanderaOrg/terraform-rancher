@@ -1,7 +1,8 @@
 resource "aws_ebs_volume" "rancher_ebs" {
   availability_zone = "${var.availability_zone}"
-  size              = 20
+  size              = "${var.rancher_storage_volume_size}"
   tags              = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+  type              = "${var.rancher_storage_volume_type}"
 }
 
 resource "aws_volume_attachment" "ebs_att" {
@@ -28,8 +29,8 @@ resource "aws_instance" "rancher" {
   vpc_security_group_ids = ["${concat(list(aws_security_group.rancher_ec2.id), var.security_groups)}"]
 
   root_block_device {
-    volume_size           = 20
-    volume_type           = "gp2"
+    volume_size           = "${var.rancher_root_volume_size}"
+    volume_type           = "${var.rancher_root_volume_type}"
     delete_on_termination = true
   }
 

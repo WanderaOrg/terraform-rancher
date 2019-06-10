@@ -46,3 +46,19 @@ variable "rancher_ami" {
 variable "rancher_instance_type" {
   default = "t3.large"
 }
+
+variable "rancher_root_volume_type" {
+  default = "gp2"
+}
+
+variable "rancher_root_volume_size" {
+  default = 20
+}
+
+variable "rancher_storage_volume_type" {
+  default = "gp2"
+}
+
+variable "rancher_storage_volume_size" {
+  default = 20
+}
