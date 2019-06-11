@@ -19,10 +19,6 @@ variable "domain_name" {}
 
 variable "route53_zone_id" {}
 
-variable "acme_server_url" {
-  default = "https://acme-staging-v02.api.letsencrypt.org/directory"
-}
-
 variable "acme_registration_email" {
   default = "no-reply@example.com"
 }
