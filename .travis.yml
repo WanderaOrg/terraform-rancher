@@ -9,8 +9,31 @@ before_script:
 script:
 - echo 'script'
 - terraform fmt -check=true
-- export AWS_REGION=region
 - cd aws
 - terraform init
-- terraform validate -var "source=void" -var "aws_region=void" -var "vpc_id=void" -var "vpc_alb_subnet_ids=[]" -var "vpc_rancher_subnet_id=void" -var "availability_zone=void" -var "instance_public_key=void" -var "domain_name=void" -var "route53_zone_id=void" -var "acme_server_url=void" -var "acme_registration_email=void" -var "security_groups=[]" -var "rancher_image=void" -var "rancher_instance_type=void" -var "cloud_tags={}" -var "provider.aws.region=eu-west-01"
+- |
+  cat << EOF > terraform.tf
+  provider "aws" {
+    region = "region"
+  }
+  provider "acme" {
+    server_url = "url"
+  }
+  EOF
+- >
+  terraform validate
+  -var "source=void"
+  -var "vpc_id=void"
+  -var "vpc_alb_subnet_ids=[]"
+  -var "vpc_rancher_subnet_id=void"
+  -var "availability_zone=void"
+  -var "instance_public_key=void"
+  -var "domain_name=void"
+  -var "route53_zone_id=void"
+  -var "acme_server_url=void"
+  -var "acme_registration_email=void"
+  -var "security_groups=[]"
+  -var "rancher_image=void"
+  -var "rancher_instance_type=void"
+  -var "cloud_tags={}"
 - docker run --rm -v $(pwd):/app/ --workdir=/app/ -t wata727/tflint
