@@ -47,7 +47,7 @@ resource "aws_lb_listener" "rancher_https" {
 resource "aws_lb" "rancher_lb" {
   name               = "rancher-alb"
   subnets            = ["${var.vpc_alb_subnet_ids}"]
-  security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.security_groups)}"]
+  security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)}"]
   load_balancer_type = "application"
 
   tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
