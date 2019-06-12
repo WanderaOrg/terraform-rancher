@@ -23,7 +23,11 @@ variable "acme_registration_email" {
   default = "no-reply@example.com"
 }
 
-variable "security_groups" {
+variable "alb_security_groups" {
+  type = "list"
+}
+
+variable "instance_security_groups" {
   type = "list"
 }
 
