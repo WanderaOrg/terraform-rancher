@@ -28,4 +28,4 @@ echo $DEVICE  $RANCHER_DIR ext4 defaults,nofail 0 2 >> /etc/fstab
 
 curl -sSL https://get.docker.com/ | sh
 until docker info; do echo 'Docker not ready yet ...'; sleep 1;  done
-docker run -d --name rancher --restart=unless-stopped -p $HTTP_PORT:$HTTP_PORT -p $HTTPS_PORT:$HTTPS_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --http-listen-port $HTTP_PORT --https-listen-port $HTTPS_PORT
+docker run -d --name rancher --restart=unless-stopped -p $HTTP_PORT:$HTTP_PORT -p $HTTPS_PORT:$HTTPS_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --http-listen-port $HTTP_PORT --https-listen-port $HTTPS_PORT --no-cacerts
