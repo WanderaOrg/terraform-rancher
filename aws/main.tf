@@ -15,7 +15,11 @@ data "template_file" "user_data" {
   template = "${file("${path.module}/user-data.tpl")}"
 
   vars = {
-    rancher_image = "${var.rancher_image}"
+    rancher_image            = "${var.rancher_image}"
+    node_exporter_version    = "${var.node_exporter_version}"
+    node_exporter_port       = "${var.node_exporter_port}"
+    node_exporter_path       = "${var.node_exporter_path}"
+    node_exporter_collectors = "${join(" ", var.node_exporter_collectors)}"
   }
 }
 

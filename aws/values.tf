@@ -62,3 +62,20 @@ variable "rancher_storage_volume_type" {
 variable "rancher_storage_volume_size" {
   default = 20
 }
+
+variable "node_exporter_version" {
+  default = "0.16.0"
+}
+
+variable "node_exporter_port" {
+  default = 9100
+}
+
+variable "node_exporter_path" {
+  default = "/metrics"
+}
+
+variable "node_exporter_collectors" {
+  default = ["cpu", "diskstats", "filesystem", "loadavg", "meminfo", "filefd", "netdev", "stat", "netstat", "systemd",
+             "uname", "vmstat", "time", "mdadm", "zfs", "tcpstat", "bonding", "hwmon", "arp"]
+}
