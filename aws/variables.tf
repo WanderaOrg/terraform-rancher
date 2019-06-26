@@ -76,6 +76,25 @@ variable "node_exporter_path" {
 }
 
 variable "node_exporter_collectors" {
-  default = ["cpu", "diskstats", "filesystem", "loadavg", "meminfo", "filefd", "netdev", "stat", "netstat", "systemd",
-             "uname", "vmstat", "time", "mdadm", "zfs", "tcpstat", "bonding", "hwmon", "arp"]
+  default = [
+    "cpu",
+    "diskstats",
+    "filesystem",
+    "loadavg",
+    "meminfo",
+    "filefd",
+    "netdev",
+    "stat",
+    "netstat",
+    "systemd",
+    "uname",
+    "vmstat",
+    "time",
+    "mdadm",
+    "zfs",
+    "tcpstat",
+    "bonding",
+    "hwmon",
+    "arp",
+  ]
 }
