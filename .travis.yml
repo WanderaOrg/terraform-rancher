@@ -37,4 +37,5 @@ script:
   -var "rancher_image=void"
   -var "rancher_instance_type=void"
   -var "cloud_tags={}"
+  -var "node_exporter_version=void"
 - docker run --rm -v $(pwd):/app/ --workdir=/app/ -t wata727/tflint
