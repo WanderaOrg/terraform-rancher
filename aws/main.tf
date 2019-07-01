@@ -44,8 +44,8 @@ resource "aws_instance" "rancher" {
 }
 
 resource "aws_key_pair" "rancher-key" {
-  key_name   = "rancher-key"
-  public_key = "${var.instance_public_key}"
+  key_name_prefix = "rnch-key-"
+  public_key      = "${var.instance_public_key}"
 }
 
 resource "aws_route53_record" "rancher" {

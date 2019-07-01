@@ -1,6 +1,6 @@
 resource "aws_security_group" "rancher_ec2" {
-  name   = "rancher_ec2"
-  vpc_id = "${var.vpc_id}"
+  name_prefix = "rnch-ec2-"
+  vpc_id      = "${var.vpc_id}"
 
   egress {
     from_port   = 0
@@ -23,7 +23,7 @@ resource "aws_security_group_rule" "rancher_ec2_from_elb" {
 }
 
 resource "aws_security_group" "rancher_elb" {
-  name        = "rancher_elb"
+  name_prefix = "rnch-elb-"
   description = "Allow all inbound traffic"
   vpc_id      = "${var.vpc_id}"
 
