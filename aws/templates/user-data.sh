@@ -7,6 +7,7 @@ NODE_EXPORTER_PATH=${node_exporter_path}
 DEVICE="/dev/nvme1n1"
 RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
+ETCD_PORT="2379"
 
 filesystem_setup() {
   while [[ ! -b $DEVICE ]]; do echo "Waiting for device $DEVICE ..."; sleep 5; done
@@ -52,7 +53,7 @@ After=docker.service
 Type=simple
 User=rancher
 Group=rancher
-ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher 2> /dev/null || /usr/bin/docker run -d --name=rancher --restart=on-failure -p $HTTPS_PORT:$HTTPS_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --https-listen-port=$HTTPS_PORT --no-cacerts"""
+ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher 2> /dev/null || /usr/bin/docker run -d --name=rancher --restart=on-failure -p ${HTTPS_PORT}:${HTTPS_PORT} -p ${ETCD_PORT}:${ETCD_PORT} -v ${RANCHER_DIR}:/var/lib/rancher ${RANCHER_IMAGE} --https-listen-port=${HTTPS_PORT} --no-cacerts"""
 ExecStart=/usr/bin/docker start -a rancher
 ExecReload=/usr/bin/docker stop -t 30 rancher
 
