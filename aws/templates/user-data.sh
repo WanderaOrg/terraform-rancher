@@ -6,7 +6,6 @@ NODE_EXPORTER_PORT=${node_exporter_port}
 NODE_EXPORTER_PATH=${node_exporter_path}
 DEVICE="/dev/nvme1n1"
 RANCHER_DIR="/opt/rancher"
-HTTP_PORT="8080"
 HTTPS_PORT="8443"
 
 filesystem_setup() {
@@ -32,12 +31,39 @@ filesystem_setup() {
 }
 
 docker_setup() {
+  groupadd docker
   curl -sSL https://get.docker.com/ | sh
   until docker info; do echo 'Docker not ready yet ...'; sleep 1;  done
 }
 
 rancher_setup() {
-  docker run -d --name rancher --restart=unless-stopped -p $HTTP_PORT:$HTTP_PORT -p $HTTPS_PORT:$HTTPS_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --http-listen-port $HTTP_PORT --https-listen-port $HTTPS_PORT --no-cacerts
+  groupadd --system rancher
+  useradd -s /sbin/nologin --system -g rancher rancher
+  usermod -aG docker rancher
+
+  cat > /etc/systemd/system/rancher.service << EOF
+[Unit]
+Description=Rancher
+Documentation=https://github.com/rancher/rancher
+Wants=network-online.target docker.socket
+After=docker.service
+
+[Service]
+Type=simple
+User=rancher
+Group=rancher
+ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher 2> /dev/null || /usr/bin/docker run -d --name=rancher --restart=on-failure -p $HTTPS_PORT:$HTTPS_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --https-listen-port=$HTTPS_PORT --no-cacerts"""
+ExecStart=/usr/bin/docker start -a rancher
+ExecReload=/usr/bin/docker stop -t 30 rancher
+
+SyslogIdentifier=rancher
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl start rancher
+  systemctl enable rancher
 }
 
 node_exporter_setup() {
@@ -76,7 +102,6 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-
   systemctl start node_exporter
   systemctl enable node_exporter
 
