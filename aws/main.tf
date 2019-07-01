@@ -12,7 +12,7 @@ resource "aws_volume_attachment" "ebs_att" {
 }
 
 data "template_file" "user_data" {
-  template = "${file("${path.module}/user-data.tpl")}"
+  template = "${file("${path.module}/templates/user-data.sh")}"
 
   vars = {
     rancher_image            = "${var.rancher_image}"
