@@ -5,9 +5,9 @@ resource "aws_lb_target_group_attachment" "rancher" {
 }
 
 resource "aws_lb_target_group" "rancher" {
-  name     = "rancher-target-group"
-  port     = 8443
-  protocol = "HTTPS"
+  name_prefix = "rnch-"
+  port        = 8443
+  protocol    = "HTTPS"
 
   vpc_id = "${var.vpc_id}"
 
@@ -45,7 +45,7 @@ resource "aws_lb_listener" "rancher_https" {
 
 # load balancer
 resource "aws_lb" "rancher_lb" {
-  name               = "rancher-alb"
+  name_prefix        = "rnch-"
   subnets            = ["${var.vpc_alb_subnet_ids}"]
   security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)}"]
   load_balancer_type = "application"
