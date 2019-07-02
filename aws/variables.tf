@@ -98,3 +98,24 @@ variable "node_exporter_collectors" {
     "arp",
   ]
 }
+
+variable "s3_backup_key" {
+  default = ""
+}
+
+variable "s3_backup_secret" {
+  default = ""
+}
+
+variable "s3_backup_region" {
+  default = ""
+}
+
+variable "s3_backup_bucket" {
+  default = ""
+}
+
+variable "s3_backup_schedule" {
+  description = "systemd OnCalendar schedule string"
+  default     = "*-*-* 4:00:00"
+}
