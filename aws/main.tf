@@ -25,6 +25,8 @@ data "template_file" "user_data" {
     s3_backup_region         = "${var.s3_backup_region}"
     s3_backup_bucket         = "${var.s3_backup_bucket}"
     s3_backup_schedule       = "${var.s3_backup_schedule}"
+    fluentd_image            = "${var.fluentd_image}"
+    fluentd_config           = "${var.fluentd_config}"
   }
 }
 
