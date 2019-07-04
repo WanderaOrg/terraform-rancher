@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RANCHER_IMAGE=${rancher_image}
+FLUENTD_IMAGE=${fluentd_image}
 NODE_EXPORTER_VER=${node_exporter_version}
 NODE_EXPORTER_PORT=${node_exporter_port}
 NODE_EXPORTER_PATH=${node_exporter_path}
@@ -160,11 +161,66 @@ EOF
   systemctl enable etcdbackup
 }
 
+fluentd_setup() {
+  groupadd --system fluentd
+  useradd -s /sbin/nologin --system -g fluentd fluentd
+  usermod -aG docker fluentd
+
+  cat > /etc/systemd/system/fluentd.service << EOF
+[Unit]
+Description=Fluentd
+Documentation=https://github.com/fluent/fluentd
+Wants=network-online.target docker.socket
+After=docker.service
+
+[Service]
+Type=simple
+User=fluentd
+Group=fluentd
+ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect fluentd 2> /dev/null || /usr/bin/docker run -d --name=fluentd --restart=on-failure -v /var/log:/var/log -v /etc/fluentd/:/etc/fluentd/:ro --entrypoint=fluentd $FLUENTD_IMAGE --config=/etc/fluentd/fluent.conf"""
+ExecStart=/usr/bin/docker start -a fluentd
+ExecReload=/usr/bin/docker stop -t 30 fluentd
+
+SyslogIdentifier=fluentd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  mkdir /etc/fluentd
+  cat > /etc/fluentd/fluent.conf << EOF
+<source>
+  @type tail
+  path /var/log/syslog
+  pos_file /var/log/syslog.pos
+
+  tag syslog
+
+  <parse>
+    @type syslog
+  </parse>
+</source>
+
+${fluentd_config}
+EOF
+
+  chown -R fluentd:fluentd /etc/fluentd/
+
+  systemctl start fluentd
+  systemctl enable fluentd
+}
+
+
 # Main section
 filesystem_setup
 docker_setup
 rancher_setup
 node_exporter_setup
+
+if [[ -n "${fluentd_config}" ]]; then
+  fluentd_setup
+fi
 
 if [[ -n "${s3_backup_region}" && -n "${s3_backup_bucket}" ]]; then
   etcd_backup_setup

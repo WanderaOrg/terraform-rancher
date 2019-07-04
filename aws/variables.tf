@@ -119,3 +119,12 @@ variable "s3_backup_schedule" {
   description = "systemd OnCalendar schedule string"
   default     = "*-*-* 4:00:00"
 }
+
+variable "fluentd_image" {
+  default = "jvassev/kube-fluentd-operator:v1.8.0"
+}
+
+variable "fluentd_config" {
+  description = "fluentd config snippet which will be appended to syslog tail config which is present by default"
+  default     = ""
+}
