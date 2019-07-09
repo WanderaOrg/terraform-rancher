@@ -35,6 +35,10 @@ variable "cloud_tags" {
   type = "map"
 }
 
+variable "rancher_instance_hostname" {
+  default = ""
+}
+
 variable "rancher_image" {
   default = "rancher/rancher"
 }
