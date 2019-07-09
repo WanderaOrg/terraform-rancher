@@ -9,6 +9,21 @@ DEVICE="/dev/nvme1n1"
 RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
+RANCHER_HOSTNAME="${rancher_hostname}"
+
+hostname_setup() {
+  echo "Setting up hostname."
+
+  if [[ -n "$RANCHER_HOSTNAME" ]]; then
+    hostname $RANCHER_HOSTNAME
+    echo $RANCHER_HOSTNAME > /etc/hostname
+    sed -i -e "/$RANCHER_HOSTNAME/d" /etc/hosts
+    echo "$(ip addr show dev $(ip addr show | egrep "ens5:|eth0:" | cut -d':' -f2) | grep 'inet ' | awk '{print $2}' | cut -d/ -f1) $RANCHER_HOSTNAME $(echo $RANCHER_HOSTNAME | cut -d. -f1)" >> /etc/hosts
+  else
+    RANCHER_HOSTNAME="$(hostname)"
+  fi
+
+}
 
 filesystem_setup() {
   while [[ ! -b $DEVICE ]]; do echo "Waiting for device $DEVICE ..."; sleep 5; done
@@ -54,7 +69,7 @@ After=docker.service
 Type=simple
 User=rancher
 Group=rancher
-ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher 2> /dev/null || /usr/bin/docker run -d --name=rancher --restart=on-failure -p $HTTPS_PORT:$HTTPS_PORT -p $ETCD_PORT:$ETCD_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --https-listen-port=$HTTPS_PORT --no-cacerts"""
+ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher 2> /dev/null || /usr/bin/docker run -d --name=rancher --hostname=$RANCHER_HOSTNAME --restart=on-failure -p $HTTPS_PORT:$HTTPS_PORT -p $ETCD_PORT:$ETCD_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --https-listen-port=$HTTPS_PORT --no-cacerts"""
 ExecStart=/usr/bin/docker start -a rancher
 ExecReload=/usr/bin/docker stop -t 30 rancher
 
@@ -177,7 +192,7 @@ After=docker.service
 Type=simple
 User=fluentd
 Group=fluentd
-ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect fluentd 2> /dev/null || /usr/bin/docker run -d --name=fluentd --restart=on-failure -v /var/log:/var/log -v /etc/fluentd/:/etc/fluentd/:ro --entrypoint=fluentd $FLUENTD_IMAGE --config=/etc/fluentd/fluent.conf"""
+ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect fluentd 2> /dev/null || /usr/bin/docker run -d --name=fluentd --hostname=$RANCHER_HOSTNAME --restart=on-failure -v /var/log:/var/log -v /etc/fluentd/:/etc/fluentd/:ro --entrypoint=fluentd $FLUENTD_IMAGE --config=/etc/fluentd/fluent.conf"""
 ExecStart=/usr/bin/docker start -a fluentd
 ExecReload=/usr/bin/docker stop -t 30 fluentd
 
@@ -213,6 +228,7 @@ EOF
 
 
 # Main section
+hostname_setup
 filesystem_setup
 docker_setup
 rancher_setup
