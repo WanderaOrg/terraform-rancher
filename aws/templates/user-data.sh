@@ -168,7 +168,9 @@ WantedBy=multi-user.target
 EOF
 
   cat > /usr/local/bin/backup_etcd << EOF
-  /usr/local/bin/awless --aws-region=${s3_backup_region} --force create s3object bucket=${s3_backup_bucket} name=backups/snapshot-\$(date +%Y-%m-%d-%H%M).db file=$RANCHER_DIR/management-state/etcd/member/snap/db
+  FILE_NAME=snapshot-\$(date +%Y-%m-%d-%H%M).tgz
+  tar --exclude='$RANCHER_DIR/management-state/etcd/member/wal' -czvf /tmp/\$FILE_NAME $RANCHER_DIR
+  /usr/local/bin/awless --aws-region=${s3_backup_region} --force create s3object bucket=${s3_backup_bucket} name=backups/\$FILE_NAME file=/tmp/\$FILE_NAME
 EOF
   chmod +x /usr/local/bin/backup_etcd
 
