@@ -44,7 +44,7 @@ filesystem_setup() {
   mkdir /opt/rancher
 
   mount $DEVICE $RANCHER_DIR
-  echo $DEVICE $RANCHER_DIR ext4 defaults,nofail 0 2 >> /etc/fstab
+  echo `blkid $DEVICE -o export | grep -E "UUID=+*"` $RANCHER_DIR ext4 defaults,nofail 0 2 >> /etc/fstab
 }
 
 docker_setup() {
