@@ -5,7 +5,6 @@ FLUENTD_IMAGE=${fluentd_image}
 NODE_EXPORTER_VER=${node_exporter_version}
 NODE_EXPORTER_PORT=${node_exporter_port}
 NODE_EXPORTER_PATH=${node_exporter_path}
-DEVICE="/dev/nvme1n1"
 RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
@@ -26,10 +25,19 @@ hostname_setup() {
 }
 
 filesystem_setup() {
-  while [[ ! -b $DEVICE ]]; do echo "Waiting for device $DEVICE ..."; sleep 5; done
+  DEVICE=""
+  while [[ -z $DEVICE ]]; do
+    echo "Waiting for device $DEVICE ..."
+    for i in $(readlink -f /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_* | grep -e "^/dev/nvme[0-9]n[0-9]$"); do
+      if [[ -z `blkid $i | grep "PTTYPE=\"dos\""` ]]; then
+        DEVICE=$i
+        break
+      fi
+    done
+    sleep 5
+  done
 
   blkid $DEVICE
-
   if [[ $? -ne "0" ]]; then
     echo "No filesystem detected on device $DEVICE. Creating ext4 filesystem."
     mkfs -t ext4 $DEVICE
@@ -44,7 +52,7 @@ filesystem_setup() {
   mkdir /opt/rancher
 
   mount $DEVICE $RANCHER_DIR
-  echo $DEVICE $RANCHER_DIR ext4 defaults,nofail 0 2 >> /etc/fstab
+  echo `blkid $DEVICE -o export | grep -E "UUID=+*"` $RANCHER_DIR ext4 defaults,nofail 0 2 >> /etc/fstab
 }
 
 docker_setup() {
@@ -168,7 +176,9 @@ WantedBy=multi-user.target
 EOF
 
   cat > /usr/local/bin/backup_etcd << EOF
-  /usr/local/bin/awless --aws-region=${s3_backup_region} --force create s3object bucket=${s3_backup_bucket} name=backups/snapshot-\$(date +%Y-%m-%d-%H%M).db file=$RANCHER_DIR/management-state/etcd/member/snap/db
+  FILE_NAME=snapshot-\$(date +%Y-%m-%d-%H%M).tgz
+  tar --exclude='$RANCHER_DIR/management-state/etcd/member/wal' -czvf /tmp/\$FILE_NAME $RANCHER_DIR
+  /usr/local/bin/awless --aws-region=${s3_backup_region} --force create s3object bucket=${s3_backup_bucket} name=backups/\$FILE_NAME file=/tmp/\$FILE_NAME
 EOF
   chmod +x /usr/local/bin/backup_etcd
 
