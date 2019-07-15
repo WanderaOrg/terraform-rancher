@@ -5,7 +5,6 @@ FLUENTD_IMAGE=${fluentd_image}
 NODE_EXPORTER_VER=${node_exporter_version}
 NODE_EXPORTER_PORT=${node_exporter_port}
 NODE_EXPORTER_PATH=${node_exporter_path}
-DEVICE="/dev/nvme1n1"
 RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
@@ -26,10 +25,19 @@ hostname_setup() {
 }
 
 filesystem_setup() {
-  while [[ ! -b $DEVICE ]]; do echo "Waiting for device $DEVICE ..."; sleep 5; done
+  DEVICE=""
+  while [[ -z $DEVICE ]]; do
+    echo "Waiting for device $DEVICE ..."
+    for i in $(readlink -f /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_* | grep -e "^/dev/nvme[0-9]n[0-9]$"); do
+      if [[ -z `blkid $i | grep "PTTYPE=\"dos\""` ]]; then
+        DEVICE=$i
+        break
+      fi
+    done
+    sleep 5
+  done
 
   blkid $DEVICE
-
   if [[ $? -ne "0" ]]; then
     echo "No filesystem detected on device $DEVICE. Creating ext4 filesystem."
     mkfs -t ext4 $DEVICE
