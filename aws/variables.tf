@@ -40,7 +40,7 @@ variable "rancher_image" {
 }
 
 variable "rancher_ami" {
-  default = "ami-08d658f84a6d84a80"
+  default = "ami-08f053fa3d25478f4"
 }
 
 variable "rancher_instance_type" {
@@ -97,4 +97,44 @@ variable "node_exporter_collectors" {
     "hwmon",
     "arp",
   ]
+}
+
+variable "s3_backup_key" {
+  default = ""
+}
+
+variable "s3_backup_secret" {
+  default = ""
+}
+
+variable "s3_backup_region" {
+  default = ""
+}
+
+variable "s3_backup_bucket" {
+  default = ""
+}
+
+variable "s3_backup_schedule" {
+  description = "systemd OnCalendar schedule string"
+  default     = "*-*-* 4:00:00"
+}
+
+variable "fluentd_image" {
+  default = "jvassev/kube-fluentd-operator:v1.8.0"
+}
+
+variable "fluentd_config" {
+  description = "fluentd config snippet which will be appended to syslog tail config which is present by default"
+  default     = ""
+}
+
+variable "grok_pattern" {
+  description = "custom grok patterns to apply to fluentd"
+  default     = ""
+}
+
+variable "grok_patterns_file" {
+  description = "file to load custom grok patterns"
+  default     = ""
 }

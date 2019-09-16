@@ -20,6 +20,15 @@ data "template_file" "user_data" {
     node_exporter_port       = "${var.node_exporter_port}"
     node_exporter_path       = "${var.node_exporter_path}"
     node_exporter_collectors = "${join(" ", var.node_exporter_collectors)}"
+    s3_backup_key            = "${var.s3_backup_key}"
+    s3_backup_secret         = "${var.s3_backup_secret}"
+    s3_backup_region         = "${var.s3_backup_region}"
+    s3_backup_bucket         = "${var.s3_backup_bucket}"
+    s3_backup_schedule       = "${var.s3_backup_schedule}"
+    fluentd_image            = "${var.fluentd_image}"
+    fluentd_config           = "${var.fluentd_config}"
+    grok_pattern             = "${var.grok_pattern}"
+    grok_patterns_file       = "${var.grok_patterns_file}"
   }
 }
 
