@@ -132,3 +132,13 @@ variable "fluentd_config" {
   description = "fluentd config snippet which will be appended to syslog tail config which is present by default"
   default     = ""
 }
+
+variable "grok_pattern" {
+  description = "custom grok patterns to apply to fluentd"
+  default     = ""
+}
+
+variable "grok_patterns_file" {
+  description = "file to load custom grok patterns"
+  default     = ""
+}

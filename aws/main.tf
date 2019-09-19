@@ -28,6 +28,8 @@ data "template_file" "user_data" {
     s3_backup_schedule       = "${var.s3_backup_schedule}"
     fluentd_image            = "${var.fluentd_image}"
     fluentd_config           = "${var.fluentd_config}"
+    grok_pattern             = "${var.grok_pattern}"
+    grok_patterns_file       = "${var.grok_patterns_file}"
   }
 }
 

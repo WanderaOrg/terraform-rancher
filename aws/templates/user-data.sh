@@ -119,7 +119,8 @@ Group=prometheus
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStart=/usr/local/bin/node_exporter $COLLECTORS \
     --web.listen-address=:$NODE_EXPORTER_PORT \
-    --web.telemetry-path="$NODE_EXPORTER_PATH"
+    --web.telemetry-path="$NODE_EXPORTER_PATH" \
+    --collector.filesystem.ignored-mount-points="(^/(sys|proc|dev)|/var/lib/docker|/run/docker/netns)(\$|/)"
 
 SyslogIdentifier=node_exporter
 Restart=always
@@ -213,8 +214,15 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-  mkdir /etc/fluentd
-  cat > /etc/fluentd/fluent.conf << EOF
+if [[ -n "${grok_patterns_file}" ]]; then
+  grok_file=${grok_patterns_file}
+  mkdir -p $${grok_file%/*}
+  cat > ${grok_patterns_file} << EOF
+${grok_pattern}
+EOF
+fi
+
+cat > /etc/fluentd/fluent.conf << EOF
 <source>
   @type tail
   path /var/log/syslog
