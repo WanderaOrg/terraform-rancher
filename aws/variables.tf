@@ -44,7 +44,7 @@ variable "rancher_image" {
 }
 
 variable "rancher_ami" {
-  default = "ami-08d658f84a6d84a80"
+  default = "ami-08f053fa3d25478f4"
 }
 
 variable "rancher_instance_type" {
