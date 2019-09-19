@@ -246,6 +246,7 @@ EOF
 
 
 # Main section
+export DEBIAN_FRONTEND=noninteractive
 hostname_setup
 filesystem_setup
 docker_setup
