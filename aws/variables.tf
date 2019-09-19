@@ -39,10 +39,6 @@ variable "rancher_instance_hostname" {
   default = ""
 }
 
-variable "rancher_image" {
-  default = "rancher/rancher"
-}
-
 variable "rancher_ami" {
   default = "ami-08f053fa3d25478f4"
 }
@@ -65,67 +61,6 @@ variable "rancher_storage_volume_type" {
 
 variable "rancher_storage_volume_size" {
   default = 20
-}
-
-variable "node_exporter_version" {
-  default = "0.16.0"
-}
-
-variable "node_exporter_port" {
-  default = 9100
-}
-
-variable "node_exporter_path" {
-  default = "/metrics"
-}
-
-variable "node_exporter_collectors" {
-  default = [
-    "cpu",
-    "diskstats",
-    "filesystem",
-    "loadavg",
-    "meminfo",
-    "filefd",
-    "netdev",
-    "stat",
-    "netstat",
-    "systemd",
-    "uname",
-    "vmstat",
-    "time",
-    "mdadm",
-    "zfs",
-    "tcpstat",
-    "bonding",
-    "hwmon",
-    "arp",
-  ]
-}
-
-variable "s3_backup_key" {
-  default = ""
-}
-
-variable "s3_backup_secret" {
-  default = ""
-}
-
-variable "s3_backup_region" {
-  default = ""
-}
-
-variable "s3_backup_bucket" {
-  default = ""
-}
-
-variable "s3_backup_schedule" {
-  description = "systemd OnCalendar schedule string"
-  default     = "*-*-* 4:00:00"
-}
-
-variable "fluentd_image" {
-  default = "jvassev/kube-fluentd-operator:v1.8.0"
 }
 
 variable "fluentd_config" {
