@@ -49,6 +49,7 @@ resource "aws_lb" "rancher_lb" {
   subnets            = ["${var.vpc_alb_subnet_ids}"]
   security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)}"]
   load_balancer_type = "application"
+  idle_timeout       = "${var.alb_idle_timeout}"
 
   tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }

@@ -27,6 +27,10 @@ variable "alb_security_groups" {
   type = "list"
 }
 
+variable "alb_idle_timeout" {
+  default = 60
+}
+
 variable "instance_security_groups" {
   type = "list"
 }
