@@ -280,10 +280,10 @@ if [[ -n "${fluentd_config}" ]]; then
   fluentd_setup
 fi
 
-if [[ -n "${s3_backup_region}" && -n "${s3_backup_bucket}" ]]; then
-  etcd_backup_setup
-fi
-
 if [[ "${s3_backup_restore}" -eq "1" && -n "${s3_backup_bucket}" ]]; then
   etcd_backup_restore
+fi
+
+if [[ -n "${s3_backup_region}" && -n "${s3_backup_bucket}" ]]; then
+  etcd_backup_setup
 fi
