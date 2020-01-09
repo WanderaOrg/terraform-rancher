@@ -9,6 +9,7 @@ RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
 RANCHER_HOSTNAME="${rancher_hostname}"
+S3CMD_VER=${s3cmd_version}
 
 hostname_setup() {
   echo "Setting up hostname."
@@ -187,6 +188,29 @@ EOF
   systemctl enable etcdbackup
 }
 
+etcd_backup_restore () {
+  echo "Installing s3cmd"
+  pip install python-dateutil
+  curl -O -L https://github.com/s3tools/s3cmd/releases/download/v$S3CMD_VER/s3cmd-$S3CMD_VER.tar.gz
+  tar -xzvf s3cmd-$S3CMD_VER.tar.gz -C /tmp
+  cp -R /tmp/s3cmd-$S3CMD_VER/s3cmd /tmp/s3cmd-$S3CMD_VER/S3 /usr/local/bin/
+
+  cat > /root/.s3cfg << EOF
+[default]
+access_key = ${s3_backup_key}
+secret_key = ${s3_backup_secret}
+EOF
+
+if [ "$(s3cmd ls s3://${s3_backup_bucket}/backups/)" ]; then
+  s3cmd get --force $(s3cmd ls s3://${s3_backup_bucket}/backups/  | awk '{print $4}' | sort -r | head -1) /tmp/rancher_snapshot.tgz
+  systemctl stop rancher
+  tar -xf /tmp/rancher_snapshot.tgz -C /
+  systemctl start rancher
+else
+  echo "No Backup to restore from s3://${s3_backup_bucket}/backups/"
+fi
+}
+
 fluentd_setup() {
   groupadd --system fluentd
   useradd -s /sbin/nologin --system -g fluentd fluentd
@@ -244,7 +268,6 @@ EOF
   systemctl enable fluentd
 }
 
-
 # Main section
 export DEBIAN_FRONTEND=noninteractive
 hostname_setup
@@ -259,4 +282,8 @@ fi
 
 if [[ -n "${s3_backup_region}" && -n "${s3_backup_bucket}" ]]; then
   etcd_backup_setup
+fi
+
+if [[ "${s3_backup_restore}" -eq "1" && -n "${s3_backup_bucket}" ]]; then
+  etcd_backup_restore
 fi

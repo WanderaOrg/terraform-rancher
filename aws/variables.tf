@@ -123,6 +123,10 @@ variable "s3_backup_bucket" {
   default = ""
 }
 
+variable "s3_backup_restore" {
+  default = false
+}
+
 variable "s3_backup_schedule" {
   description = "systemd OnCalendar schedule string"
   default     = "*-*-* 4:00:00"
@@ -145,4 +149,8 @@ variable "grok_pattern" {
 variable "grok_patterns_file" {
   description = "file to load custom grok patterns"
   default     = ""
+}
+
+variable "s3cmd_version" {
+  default = "2.0.2"
 }
