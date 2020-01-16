@@ -9,6 +9,7 @@ RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
 RANCHER_HOSTNAME="${rancher_hostname}"
+S3CMD_VER=${s3cmd_version}
 
 hostname_setup() {
   echo "Setting up hostname."
@@ -134,13 +135,38 @@ EOF
   ufw allow $NODE_EXPORTER_PORT
 }
 
+etcd_backup_restore () {
+
+  echo "Restoring backup"
+  if [[ "$(s3cmd ls s3://${s3_backup_bucket}/backups/)" ]]; then
+    s3cmd get --force $(s3cmd ls s3://${s3_backup_bucket}/backups/  | awk '{print $4}' | sort -r | head -1 ) /tmp/rancher_snapshot.tgz
+    systemctl stop rancher
+    tar -xf /tmp/rancher_snapshot.tgz -C /
+    systemctl start rancher
+  else
+    echo "No Backup to restore from s3://${s3_backup_bucket}/backups/"
+  fi
+
+}
+
 etcd_backup_setup () {
 
-  echo "Installing awsless"
-  curl https://raw.githubusercontent.com/wallix/awless/master/getawless.sh | bash
-  mv awless /usr/local/bin/
+  echo "Installing s3cmd"
+  pip install python-dateutil
+  pip install python-magic
+  curl -O -L https://github.com/s3tools/s3cmd/releases/download/v$S3CMD_VER/s3cmd-$S3CMD_VER.tar.gz
+  tar -xzvf s3cmd-$S3CMD_VER.tar.gz -C /tmp
+  cp -R /tmp/s3cmd-$S3CMD_VER/s3cmd /tmp/s3cmd-$S3CMD_VER/S3 /usr/local/bin/
 
-  awless --version
+  cat > /root/.s3cfg << EOF
+[default]
+access_key = ${s3_backup_key}
+secret_key = ${s3_backup_secret}
+EOF
+
+  if [[ "${s3_backup_restore}" -eq "1" ]]; then
+    etcd_backup_restore
+  fi
 
   cat > /etc/systemd/system/etcdbackup.timer << EOF
 [Unit]
@@ -166,8 +192,6 @@ Wants=network-online.target docker.socket etcdbackup.timer
 After=docker.service
 
 [Service]
-Environment=AWS_ACCESS_KEY_ID=${s3_backup_key}
-Environment=AWS_SECRET_ACCESS_KEY=${s3_backup_secret}
 ExecStart=/bin/bash -c /usr/local/bin/backup_etcd
 
 SyslogIdentifier=etcdbackup
@@ -179,7 +203,7 @@ EOF
   cat > /usr/local/bin/backup_etcd << EOF
   FILE_NAME=snapshot-\$(date +%Y-%m-%d-%H%M).tgz
   tar --exclude='$RANCHER_DIR/management-state/etcd/member/wal' -czvf /tmp/\$FILE_NAME $RANCHER_DIR
-  /usr/local/bin/awless --aws-region=${s3_backup_region} --force create s3object bucket=${s3_backup_bucket} name=backups/\$FILE_NAME file=/tmp/\$FILE_NAME
+  s3cmd put /tmp/\$FILE_NAME s3://${s3_backup_bucket}/backups/\$FILE_NAME
 EOF
   chmod +x /usr/local/bin/backup_etcd
 
@@ -243,7 +267,6 @@ EOF
   systemctl start fluentd
   systemctl enable fluentd
 }
-
 
 # Main section
 export DEBIAN_FRONTEND=noninteractive

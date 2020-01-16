@@ -26,10 +26,12 @@ data "template_file" "user_data" {
     s3_backup_region         = "${var.s3_backup_region}"
     s3_backup_bucket         = "${var.s3_backup_bucket}"
     s3_backup_schedule       = "${var.s3_backup_schedule}"
+    s3_backup_restore        = "${var.s3_backup_restore}"
     fluentd_image            = "${var.fluentd_image}"
     fluentd_config           = "${var.fluentd_config}"
     grok_pattern             = "${var.grok_pattern}"
     grok_patterns_file       = "${var.grok_patterns_file}"
+    s3cmd_version            = "${var.s3cmd_version}"
   }
 }
 
