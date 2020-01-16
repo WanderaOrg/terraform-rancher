@@ -1,13 +1,16 @@
 resource "tls_private_key" "private_key" {
+  count = "${var.rancher_create_cert ? 1 : 0}"
   algorithm = "RSA"
 }
 
 resource "acme_registration" "reg" {
+  count = "${var.rancher_create_cert ? 1 : 0}"
   account_key_pem = "${tls_private_key.private_key.private_key_pem}"
   email_address   = "${var.acme_registration_email}"
 }
 
 resource "acme_certificate" "certificate" {
+  count = "${var.rancher_create_cert ? 1 : 0}"
   account_key_pem = "${acme_registration.reg.account_key_pem}"
   common_name     = "${var.domain_name}"
 
@@ -17,6 +20,7 @@ resource "acme_certificate" "certificate" {
 }
 
 resource "aws_iam_server_certificate" "rancher_elb_cert" {
+  count = "${var.rancher_create_cert ? 1 : 0}"
   name_prefix       = "rancher-cert-"
   certificate_body  = "${acme_certificate.certificate.certificate_pem}"
   certificate_chain = "${acme_certificate.certificate.issuer_pem}"
