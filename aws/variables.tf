@@ -75,16 +75,6 @@ variable "rancher_storage_volume_size" {
   default = 20
 }
 
-variable "rancher_create_cert" {
-  description = "set to false if rancher elb cert is created outside the module"
-  default = true
-}
-
-variable "rancher_elb_cert_arn" {
- description = "rancher elb cert to be passed in from outside the module"
- default = ""
-}
-
 variable "node_exporter_version" {
   default = "0.16.0"
 }
