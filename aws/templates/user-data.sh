@@ -10,6 +10,7 @@ HTTPS_PORT="8443"
 ETCD_PORT="2379"
 RANCHER_HOSTNAME="${rancher_hostname}"
 S3CMD_VER=${s3cmd_version}
+S3_BACKUP_FILENAME=${s3_backup_filename}
 
 hostname_setup() {
   echo "Setting up hostname."
@@ -136,21 +137,22 @@ EOF
 }
 
 etcd_backup_restore () {
-
-  echo "Restoring backup"
   if [[ "$(s3cmd ls s3://${s3_backup_bucket}/backups/)" ]]; then
-    s3cmd get --force $(s3cmd ls s3://${s3_backup_bucket}/backups/  | awk '{print $4}' | sort -r | head -1 ) /tmp/rancher_snapshot.tgz
+    if [[ -z "${s3_backup_filename}" ]]; then
+      S3_BACKUP_FILENAME=$(s3cmd ls s3://${s3_backup_bucket}/backups/ | awk '{print $4}' | sort -r | head -1 | cut -d'/' -f5 )
+    fi
+
+    echo "Restoring backup $S3_BACKUP_FILENAME"
+    s3cmd get --force s3://${s3_backup_bucket}/backups/$S3_BACKUP_FILENAME /tmp/rancher_snapshot.tgz
     systemctl stop rancher
-    tar -xf /tmp/rancher_snapshot.tgz -C /
+    rm /opt/rancher/* -rf && tar -xf /tmp/rancher_snapshot.tgz -C /
     systemctl start rancher
   else
     echo "No Backup to restore from s3://${s3_backup_bucket}/backups/"
   fi
-
 }
 
 etcd_backup_setup () {
-
   echo "Installing s3cmd"
   pip install python-dateutil
   pip install python-magic
