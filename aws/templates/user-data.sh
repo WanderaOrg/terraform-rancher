@@ -60,6 +60,18 @@ docker_setup() {
   groupadd docker
   curl -sSL https://get.docker.com/ | sh
   until docker info; do echo 'Docker not ready yet ...'; sleep 1;  done
+
+  cat << EOF > /etc/docker/daemon.json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3" 
+  }
+}
+EOF
+
+  systemctl restart docker
 }
 
 rancher_setup() {
