@@ -35,7 +35,7 @@ resource "aws_lb_listener" "rancher_https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "${aws_iam_server_certificate.rancher_elb_cert.arn}"
+  certificate_arn   = "${var.rancher_create_cert ? join("",aws_iam_server_certificate.rancher_elb_cert.*.arn) : var.rancher_elb_cert_arn}"
 
   default_action {
     type             = "forward"
