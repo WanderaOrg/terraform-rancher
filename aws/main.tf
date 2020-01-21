@@ -25,6 +25,7 @@ data "template_file" "user_data" {
     s3_backup_secret         = "${var.s3_backup_secret}"
     s3_backup_region         = "${var.s3_backup_region}"
     s3_backup_bucket         = "${var.s3_backup_bucket}"
+    s3_backup_filename       = "${var.s3_backup_filename}"
     s3_backup_schedule       = "${var.s3_backup_schedule}"
     s3_backup_restore        = "${var.s3_backup_restore}"
     fluentd_image            = "${var.fluentd_image}"
@@ -40,6 +41,7 @@ resource "aws_instance" "rancher" {
   instance_type     = "${var.rancher_instance_type}"
   availability_zone = "${var.availability_zone}"
   subnet_id         = "${var.vpc_rancher_subnet_id}"
+  private_ip        = "${var.rancher_private_ip}"
   key_name          = "${aws_key_pair.rancher-key.key_name}"
 
   vpc_security_group_ids = ["${concat(list(aws_security_group.rancher_ec2.id), var.instance_security_groups)}"]

@@ -11,6 +11,10 @@ variable "vpc_alb_subnet_ids" {
 # the subnet id should belond to the availability zone specified bellow
 variable "vpc_rancher_subnet_id" {}
 
+variable "rancher_private_ip" {
+  default = ""
+}
+
 variable "availability_zone" {}
 
 variable "instance_public_key" {}
@@ -120,6 +124,10 @@ variable "s3_backup_region" {
 }
 
 variable "s3_backup_bucket" {
+  default = ""
+}
+
+variable "s3_backup_filename" {
   default = ""
 }
 
