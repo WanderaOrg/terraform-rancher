@@ -9,7 +9,7 @@ RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
 RANCHER_HOSTNAME="${rancher_hostname}"
-S3CMD_VER=${s3cmd_version}
+RANCHER_VERSION="${rancher_version}"
 S3_BACKUP_FILENAME=${s3_backup_filename}
 
 hostname_setup() {
@@ -67,7 +67,7 @@ docker_setup() {
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
-    "max-file": "3" 
+    "max-file": "3"
   }
 }
 EOF
@@ -149,15 +149,17 @@ EOF
 }
 
 etcd_backup_restore () {
-  if [[ "$(s3cmd ls s3://${s3_backup_bucket}/backups/)" ]]; then
-    if [[ -z "${s3_backup_filename}" ]]; then
-      S3_BACKUP_FILENAME=$(s3cmd ls s3://${s3_backup_bucket}/backups/ | awk '{print $4}' | sort -r | head -1 | cut -d'/' -f5 )
+  if [[ "$(s4cmd ls s3://${s3_backup_bucket}/backups/)" ]]; then
+    if [[ -n "${s3_backup_filename}" ]]; then
+      S3_BACKUP_FILENAME=$(s4cmd ls s3://${s3_backup_bucket}/backups/${s3_backup_filename} | awk '{print $4}' | sort -r | head -1 | cut -d'/' -f5 )
     fi
 
     echo "Restoring backup $S3_BACKUP_FILENAME"
-    s3cmd get --force s3://${s3_backup_bucket}/backups/$S3_BACKUP_FILENAME /tmp/rancher_snapshot.tgz
+    s4cmd get --force s3://${s3_backup_bucket}/backups/$S3_BACKUP_FILENAME /tmp/rancher_snapshot.tgz
     systemctl stop rancher
-    rm /opt/rancher/* -rf && tar -xf /tmp/rancher_snapshot.tgz -C /
+    docker run  --volumes-from rancher -v /tmp:/tmp \
+    busybox sh -c "rm /var/lib/rancher/* -rf  && \
+    tar -zxvf /tmp/rancher_snapshot.tgz"
     systemctl start rancher
   else
     echo "No Backup to restore from s3://${s3_backup_bucket}/backups/"
@@ -165,12 +167,8 @@ etcd_backup_restore () {
 }
 
 etcd_backup_setup () {
-  echo "Installing s3cmd"
-  pip install python-dateutil
-  pip install python-magic
-  curl -O -L https://github.com/s3tools/s3cmd/releases/download/v$S3CMD_VER/s3cmd-$S3CMD_VER.tar.gz
-  tar -xzvf s3cmd-$S3CMD_VER.tar.gz -C /tmp
-  cp -R /tmp/s3cmd-$S3CMD_VER/s3cmd /tmp/s3cmd-$S3CMD_VER/S3 /usr/local/bin/
+  echo "Installing s4cmd"
+  apt install s4cmd
 
   cat > /root/.s3cfg << EOF
 [default]
@@ -215,9 +213,14 @@ WantedBy=multi-user.target
 EOF
 
   cat > /usr/local/bin/backup_etcd << EOF
-  FILE_NAME=snapshot-\$(date +%Y-%m-%d-%H%M).tgz
-  tar --exclude='$RANCHER_DIR/management-state/etcd/member/wal' -czvf /tmp/\$FILE_NAME $RANCHER_DIR
-  s3cmd put /tmp/\$FILE_NAME s3://${s3_backup_bucket}/backups/\$FILE_NAME
+  FILE_NAME=rancher-data
+  BACKUP_TIME=$(date +%Y%m%d-%k%M)
+  RANCHER_VERSION=${RANCHER_VERSION}
+  systemctl stop rancher && \
+  docker create --volumes-from rancher --name ${FILE_NAME}-${BACKUP_TIME} rancher/rancher:v${RANCHER_VERSION} && \
+  docker run  --volumes-from ${FILE_NAME}-${BACKUP_TIME} -v /tmp:/tmp:z busybox tar --exclude='var/lib/rancher/management-state/etcd/member/wal/' -zcvf /tmp/${FILE_NAME}-v${RANCHER_VERSION}-${BACKUP_TIME}.tar.gz /var/lib/rancher && \
+  docker start rancher
+  s4cmd put /tmp/${FILE_NAME}-v${RANCHER_VERSION}-${BACKUP_TIME}.tar.gz s3://${s3_backup_bucket}/backups/
 EOF
   chmod +x /usr/local/bin/backup_etcd
 

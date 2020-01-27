@@ -51,6 +51,10 @@ variable "rancher_image" {
   default = "rancher/rancher"
 }
 
+variable "rancher_version" {
+  default = "2.2.4"
+}
+
 variable "rancher_ami" {
   default = "ami-08f053fa3d25478f4"
 }
@@ -167,8 +171,4 @@ variable "grok_pattern" {
 variable "grok_patterns_file" {
   description = "file to load custom grok patterns"
   default     = ""
-}
-
-variable "s3cmd_version" {
-  default = "2.0.2"
 }
