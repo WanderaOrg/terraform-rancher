@@ -150,8 +150,8 @@ EOF
 
 etcd_backup_restore () {
   if [[ "$(s4cmd ls s3://${s3_backup_bucket}/backups/)" ]]; then
-    if [[ -n "${s3_backup_filename}" ]]; then
-      S3_BACKUP_FILENAME=$(s4cmd ls s3://${s3_backup_bucket}/backups/${s3_backup_filename} | awk '{print $4}' | sort -r | head -1 | cut -d'/' -f5 )
+    if [[ -z "${S3_BACKUP_FILENAME}" ]]; then
+      S3_BACKUP_FILENAME=`s4cmd ls s3://${s3_backup_bucket}/backups/ | awk '{print $4}' | sort -r | head -1 | cut -d'/' -f5`
     fi
 
     echo "Restoring backup $S3_BACKUP_FILENAME"
@@ -219,7 +219,7 @@ EOF
   systemctl stop rancher && \
   docker create --volumes-from rancher --name ${FILE_NAME}-${BACKUP_TIME} rancher/rancher:v${RANCHER_VERSION} && \
   docker run  --volumes-from ${FILE_NAME}-${BACKUP_TIME} -v /tmp:/tmp:z busybox tar --exclude='var/lib/rancher/management-state/etcd/member/wal/' -zcvf /tmp/${FILE_NAME}-v${RANCHER_VERSION}-${BACKUP_TIME}.tar.gz /var/lib/rancher && \
-  docker start rancher
+  systemctl start rancher
   s4cmd put /tmp/${FILE_NAME}-v${RANCHER_VERSION}-${BACKUP_TIME}.tar.gz s3://${s3_backup_bucket}/backups/
 EOF
   chmod +x /usr/local/bin/backup_etcd
