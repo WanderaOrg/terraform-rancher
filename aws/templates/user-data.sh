@@ -168,7 +168,7 @@ etcd_backup_restore () {
 
 etcd_backup_setup () {
   echo "Installing s4cmd"
-  apt install s4cmd
+  pip install s4cmd
 
   cat > /root/.s3cfg << EOF
 [default]
