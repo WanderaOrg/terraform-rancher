@@ -15,6 +15,7 @@ data "template_file" "user_data" {
   template = "${file("${path.module}/templates/user-data.sh")}"
 
   vars = {
+    rancher_version          = "${var.rancher_version}"
     rancher_hostname         = "${var.rancher_instance_hostname}"
     rancher_image            = "${var.rancher_image}"
     node_exporter_version    = "${var.node_exporter_version}"
@@ -32,7 +33,6 @@ data "template_file" "user_data" {
     fluentd_config           = "${var.fluentd_config}"
     grok_pattern             = "${var.grok_pattern}"
     grok_patterns_file       = "${var.grok_patterns_file}"
-    s3cmd_version            = "${var.s3cmd_version}"
   }
 }
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RANCHER_IMAGE=${rancher_image}
+RANCHER_IMAGE="${rancher_image}:v${rancher_version}"
 FLUENTD_IMAGE=${fluentd_image}
 NODE_EXPORTER_VER=${node_exporter_version}
 NODE_EXPORTER_PORT=${node_exporter_port}
@@ -9,8 +9,7 @@ RANCHER_DIR="/opt/rancher"
 HTTPS_PORT="8443"
 ETCD_PORT="2379"
 RANCHER_HOSTNAME="${rancher_hostname}"
-S3CMD_VER=${s3cmd_version}
-S3_BACKUP_FILENAME=${s3_backup_filename}
+S4_CMD="s4cmd --access-key=${s3_backup_key} --secret-key=${s3_backup_secret}"
 
 hostname_setup() {
   echo "Setting up hostname."
@@ -67,7 +66,7 @@ docker_setup() {
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
-    "max-file": "3" 
+    "max-file": "3"
   }
 }
 EOF
@@ -80,7 +79,7 @@ rancher_setup() {
   useradd -s /sbin/nologin --system -g rancher rancher
   usermod -aG docker rancher
 
-  cat > /etc/systemd/system/rancher.service << EOF
+  cat > /etc/systemd/system/rancher-v${rancher_version}.service << EOF
 [Unit]
 Description=Rancher
 Documentation=https://github.com/rancher/rancher
@@ -91,9 +90,9 @@ After=docker.service
 Type=simple
 User=rancher
 Group=rancher
-ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher 2> /dev/null || /usr/bin/docker run -d --name=rancher --hostname=$RANCHER_HOSTNAME --restart=on-failure -p $HTTPS_PORT:$HTTPS_PORT -p $ETCD_PORT:$ETCD_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --https-listen-port=$HTTPS_PORT --no-cacerts"""
-ExecStart=/usr/bin/docker start -a rancher
-ExecReload=/usr/bin/docker stop -t 30 rancher
+ExecStartPre=/bin/bash -c """/usr/bin/docker container inspect rancher-v${rancher_version} 2> /dev/null || /usr/bin/docker run -d --name=rancher-v${rancher_version} --hostname=$RANCHER_HOSTNAME --restart=on-failure -p $HTTPS_PORT:$HTTPS_PORT -p $ETCD_PORT:$ETCD_PORT -v $RANCHER_DIR:/var/lib/rancher $RANCHER_IMAGE --https-listen-port=$HTTPS_PORT --no-cacerts"""
+ExecStart=/usr/bin/docker start -a rancher-v${rancher_version}
+ExecReload=/usr/bin/docker stop -t 30 rancher-v${rancher_version}
 
 SyslogIdentifier=rancher
 Restart=always
@@ -101,8 +100,8 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-  systemctl start rancher
-  systemctl enable rancher
+  systemctl start rancher-v${rancher_version}.service
+  systemctl enable rancher-v${rancher_version}.service
 }
 
 node_exporter_setup() {
@@ -130,7 +129,7 @@ After=network-online.target
 Type=simple
 User=prometheus
 Group=prometheus
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=/bin/kill -HUP \$MAINPID
 ExecStart=/usr/local/bin/node_exporter $COLLECTORS \
     --web.listen-address=:$NODE_EXPORTER_PORT \
     --web.telemetry-path="$NODE_EXPORTER_PATH" \
@@ -149,43 +148,39 @@ EOF
 }
 
 etcd_backup_restore () {
-  if [[ "$(s3cmd ls s3://${s3_backup_bucket}/backups/)" ]]; then
+  if [[ "$($S4_CMD ls s3://${s3_backup_bucket}/backups/)" ]]; then
     if [[ -z "${s3_backup_filename}" ]]; then
-      S3_BACKUP_FILENAME=$(s3cmd ls s3://${s3_backup_bucket}/backups/ | awk '{print $4}' | sort -r | head -1 | cut -d'/' -f5 )
+      S3_BACKUP_FILENAME=`$S4_CMD ls s3://${s3_backup_bucket}/backups/ | sort -r | awk '{print $4}' | head -1 | cut -d'/' -f5`
+    else
+      S3_BACKUP_FILENAME="${s3_backup_filename}"
     fi
 
     echo "Restoring backup $S3_BACKUP_FILENAME"
-    s3cmd get --force s3://${s3_backup_bucket}/backups/$S3_BACKUP_FILENAME /tmp/rancher_snapshot.tgz
-    systemctl stop rancher
-    rm /opt/rancher/* -rf && tar -xf /tmp/rancher_snapshot.tgz -C /
-    systemctl start rancher
+    $S4_CMD get --force s3://${s3_backup_bucket}/backups/$S3_BACKUP_FILENAME /tmp/rancher_snapshot.tgz
+    rancher-v${rancher_version}
+    sleep 60
+    docker run  --volumes-from rancher-v${rancher_version} -v /tmp:/tmp \
+    busybox sh -c "rm /var/lib/rancher/* -rf  && \
+    tar -zxvf /tmp/rancher_snapshot.tgz" && \
+    systemctl start rancher-v${rancher_version} && \
+    rm /tmp/rancher_snapshot.tgz
   else
     echo "No Backup to restore from s3://${s3_backup_bucket}/backups/"
   fi
 }
 
 etcd_backup_setup () {
-  echo "Installing s3cmd"
-  pip install python-dateutil
-  pip install python-magic
-  curl -O -L https://github.com/s3tools/s3cmd/releases/download/v$S3CMD_VER/s3cmd-$S3CMD_VER.tar.gz
-  tar -xzvf s3cmd-$S3CMD_VER.tar.gz -C /tmp
-  cp -R /tmp/s3cmd-$S3CMD_VER/s3cmd /tmp/s3cmd-$S3CMD_VER/S3 /usr/local/bin/
-
-  cat > /root/.s3cfg << EOF
-[default]
-access_key = ${s3_backup_key}
-secret_key = ${s3_backup_secret}
-EOF
+  echo "Installing s4cmd"
+  pip install s4cmd
 
   if [[ "${s3_backup_restore}" -eq "1" ]]; then
+    until docker inspect -f '{{.Id}}' rancher-v${rancher_version}; do echo 'Rancher not ready yet ...'; sleep 5;  done
     etcd_backup_restore
   fi
 
   cat > /etc/systemd/system/etcdbackup.timer << EOF
 [Unit]
 Description=etcd backup timer
-Requires=etcdbackup.service
 Wants=network-online.target docker.socket
 After=docker.service
 
@@ -193,8 +188,6 @@ After=docker.service
 Unit=etcdbackup.service
 OnCalendar=${s3_backup_schedule}
 Persistent=true
-
-SyslogIdentifier=etcdbackup
 
 [Install]
 WantedBy=timers.target
@@ -209,20 +202,24 @@ After=docker.service
 ExecStart=/bin/bash -c /usr/local/bin/backup_etcd
 
 SyslogIdentifier=etcdbackup
-
-[Install]
-WantedBy=multi-user.target
 EOF
 
   cat > /usr/local/bin/backup_etcd << EOF
-  FILE_NAME=snapshot-\$(date +%Y-%m-%d-%H%M).tgz
-  tar --exclude='$RANCHER_DIR/management-state/etcd/member/wal' -czvf /tmp/\$FILE_NAME $RANCHER_DIR
-  s3cmd put /tmp/\$FILE_NAME s3://${s3_backup_bucket}/backups/\$FILE_NAME
+  FILE_NAME="rancher-data-v${rancher_version}"
+  BACKUP_TIME=\$(date +%Y%m%d-%k%M)
+  systemctl stop rancher-v${rancher_version} && \
+  sleep 60 && \
+  docker create --volumes-from rancher-v${rancher_version} --name \$${FILE_NAME}-\$${BACKUP_TIME} rancher/rancher:v${rancher_version} && \
+  docker run  --volumes-from \$${FILE_NAME}-\$${BACKUP_TIME} -v /tmp:/tmp:z busybox tar -zcf /tmp/\$${FILE_NAME}-\$${BACKUP_TIME}.tar.gz /var/lib/rancher && \
+  systemctl start rancher-v${rancher_version} && \
+  $S4_CMD put /tmp/\$${FILE_NAME}-\$${BACKUP_TIME}.tar.gz s3://${s3_backup_bucket}/backups/ && \
+  rm /tmp/\$${FILE_NAME}-\$${BACKUP_TIME}.tar.gz
 EOF
   chmod +x /usr/local/bin/backup_etcd
 
-  systemctl start etcdbackup
-  systemctl enable etcdbackup
+  systemctl disable etcdbackup.service
+  systemctl enable etcdbackup.timer
+  systemctl start etcdbackup.timer
 }
 
 fluentd_setup() {
