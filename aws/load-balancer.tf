@@ -57,11 +57,7 @@ resource "aws_s3_bucket" "rancher_lb_access_logs" {
     }
   }
 
-  tags {
-    Name        = "Access logs for Rancher loadbalancer"
-    Environment = "${var.environment}"
-    env         = "${var.environment}"
-  }
+  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }
 
 # load balancer

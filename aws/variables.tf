@@ -1,7 +1,3 @@
-variable "environment" {
-  type    = "string"
-  default = "operations-shared"
-}
 variable "aws_region" {
   default = "eu-west-1"
 }
