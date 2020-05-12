@@ -43,6 +43,26 @@ resource "aws_lb_listener" "rancher_https" {
   }
 }
 
+resource "aws_s3_bucket" "rancher_lb_access_logs" {
+  bucket        = "wandera-${var.account_name}-rancher-access-logs"
+  acl           = "private"
+  force_destroy = true
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = 10
+    }
+  }
+
+  tags {
+    Name        = "Access logs for Rancher loadbalancer"
+    Environment = "${var.environment}"
+    env         = "${var.environment}"
+  }
+}
+
 # load balancer
 resource "aws_lb" "rancher_lb" {
   name_prefix        = "rnch-"
@@ -50,6 +70,11 @@ resource "aws_lb" "rancher_lb" {
   security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)}"]
   load_balancer_type = "application"
   idle_timeout       = "${var.alb_idle_timeout}"
+
+  access_logs {
+    bucket          = "${aws_s3_bucket.rancher_lb_access_logs.bucket}"
+    enabled         = "1"
+  }
 
   tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }
