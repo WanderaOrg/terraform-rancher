@@ -1,3 +1,12 @@
+variable "account_name" {
+  type        = "string"
+  description = "AWS account name"
+}
+
+variable "environment" {
+  type    = "string"
+  default = "operations-shared"
+}
 variable "aws_region" {
   default = "eu-west-1"
 }
