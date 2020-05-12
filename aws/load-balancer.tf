@@ -44,7 +44,8 @@ resource "aws_lb_listener" "rancher_https" {
 }
 
 resource "aws_s3_bucket" "rancher_lb_access_logs" {
-  bucket        = "wandera-${var.account_name}-rancher-access-logs"
+  count         = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
+  bucket        = "${var.rancher_lb_access_logs_bucket}"
   acl           = "private"
   force_destroy = true
 
@@ -72,8 +73,8 @@ resource "aws_lb" "rancher_lb" {
   idle_timeout       = "${var.alb_idle_timeout}"
 
   access_logs {
-    bucket          = "${aws_s3_bucket.rancher_lb_access_logs.bucket}"
-    enabled         = "1"
+    enabled         = "${var.rancher_lb_access_logs_enabled}"
+    bucket          = "${var.rancher_lb_access_logs_bucket}"
   }
 
   tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
