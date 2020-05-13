@@ -57,7 +57,7 @@ resource "aws_s3_bucket" "rancher_lb_access_logs" {
     }
   }
 
-  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+  tags = "${merge(map("Name", "${var.rancher_lb_access_logs_bucket}"), var.cloud_tags)}"
 }
 
 # load balancer
