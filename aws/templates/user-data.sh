@@ -206,7 +206,7 @@ EOF
 
   cat > /usr/local/bin/backup_etcd << EOF
   FILE_NAME="rancher-data-v${rancher_version}"
-  BACKUP_TIME=\$(date +%Y%m%d-%k%M)
+  BACKUP_TIME=\$(date +%Y%m%d-%H%M)
   systemctl stop rancher-v${rancher_version} && \
   sleep 60 && \
   docker create --volumes-from rancher-v${rancher_version} --name \$${FILE_NAME}-\$${BACKUP_TIME} rancher/rancher:v${rancher_version} && \
