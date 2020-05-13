@@ -43,6 +43,23 @@ resource "aws_lb_listener" "rancher_https" {
   }
 }
 
+resource "aws_s3_bucket" "rancher_lb_access_logs" {
+  count         = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
+  bucket        = "${var.rancher_lb_access_logs_bucket}"
+  acl           = "private"
+  force_destroy = true
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = 10
+    }
+  }
+
+  tags = "${merge(map("Name", "${var.rancher_lb_access_logs_bucket}"), var.cloud_tags)}"
+}
+
 # load balancer
 resource "aws_lb" "rancher_lb" {
   name_prefix        = "rnch-"
@@ -50,6 +67,11 @@ resource "aws_lb" "rancher_lb" {
   security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)}"]
   load_balancer_type = "application"
   idle_timeout       = "${var.alb_idle_timeout}"
+
+  access_logs {
+    enabled         = "${var.rancher_lb_access_logs_enabled}"
+    bucket          = "${var.rancher_lb_access_logs_bucket}"
+  }
 
   tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
 }
