@@ -43,7 +43,7 @@ resource "aws_lb_listener" "rancher_https" {
   }
 }
 
-resource "aws_s3_bucket" "rancher_lb_access_logs" {
+resource "aws_s3_bucket" "rancher_lb_access_logs_s3_bucket" {
   count         = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
   bucket        = "${var.rancher_lb_access_logs_bucket}"
   acl           = "private"
@@ -58,6 +58,51 @@ resource "aws_s3_bucket" "rancher_lb_access_logs" {
   }
 
   tags = "${merge(map("Name", "${var.rancher_lb_access_logs_bucket}"), var.cloud_tags)}"
+}
+
+data "aws_elb_service_account" "default" {}
+
+data "aws_caller_identity" "default" {}
+
+resource "aws_s3_bucket_policy" "rancher_lb_access_logs_s3_bucket_policy" {
+  bucket = "${aws_s3_bucket.rancher_lb_access_logs_s3_bucket.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "${data.aws_elb_service_account.default.arn}"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}/AWSLogs/${data.aws_caller_identity.default.account_id}/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "delivery.logs.amazonaws.com"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}/AWSLogs/${data.aws_caller_identity.default.account_id}/*",
+      "Condition": {
+        "StringEquals": {
+          "s3:x-amz-acl": "bucket-owner-full-control"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "delivery.logs.amazonaws.com"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}"
+    }
+  ]
+}
+EOF
 }
 
 # load balancer
