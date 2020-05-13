@@ -43,7 +43,7 @@ resource "aws_lb_listener" "rancher_https" {
   }
 }
 
-resource "aws_s3_bucket" "rancher_lb_access_logs_s3_bucket" {
+resource "aws_s3_bucket" "rancher_lb_access_logs" {
   count         = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
   bucket        = "${var.rancher_lb_access_logs_bucket}"
   acl           = "private"
@@ -64,8 +64,8 @@ data "aws_elb_service_account" "default" {}
 
 data "aws_caller_identity" "default" {}
 
-resource "aws_s3_bucket_policy" "rancher_lb_access_logs_s3_bucket_policy" {
-  bucket = "${aws_s3_bucket.rancher_lb_access_logs_s3_bucket.id}"
+resource "aws_s3_bucket_policy" "rancher_lb_access_logs" {
+  bucket = "${aws_s3_bucket.rancher_lb_access_logs.bucket}"
 
   policy = <<EOF
 {
