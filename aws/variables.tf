@@ -89,6 +89,21 @@ variable "rancher_elb_cert_arn" {
  default = ""
 }
 
+variable "rancher_lb_access_logs_enabled" {
+  description = "Rancher LB enable access logging to S3 bucket"
+  default = false
+}
+
+variable "rancher_lb_access_logs_bucket" {
+  description = "Rancher LB access logs S3 bucket name"
+  default = ""
+}
+
+variable "rancher_lb_access_logs_bucket_create" {
+  description = "Create Rancher LB access logs S3 bucket"
+  default = false
+}
+
 variable "node_exporter_version" {
   default = "0.16.0"
 }
