@@ -104,6 +104,11 @@ variable "rancher_lb_access_logs_bucket_create" {
   default = false
 }
 
+variable "rancher_lb_access_logs_prefix" {
+  description = "Rancher LB access logs S3 bucke prefix"
+  default = "rancher"
+}
+
 variable "node_exporter_version" {
   default = "0.16.0"
 }

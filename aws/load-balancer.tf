@@ -77,7 +77,7 @@ resource "aws_s3_bucket_policy" "rancher_lb_access_logs" {
         "AWS": "${data.aws_elb_service_account.default.arn}"
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}/AWSLogs/${data.aws_caller_identity.default.account_id}/*"
+      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}/${var.rancher_lb_access_logs_prefix}/AWSLogs/${data.aws_caller_identity.default.account_id}/*"
     },
     {
       "Effect": "Allow",
@@ -85,7 +85,7 @@ resource "aws_s3_bucket_policy" "rancher_lb_access_logs" {
         "Service": "delivery.logs.amazonaws.com"
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}/AWSLogs/${data.aws_caller_identity.default.account_id}/*",
+      "Resource": "arn:aws:s3:::${var.rancher_lb_access_logs_bucket}/${var.rancher_lb_access_logs_prefix}/AWSLogs/${data.aws_caller_identity.default.account_id}/*",
       "Condition": {
         "StringEquals": {
           "s3:x-amz-acl": "bucket-owner-full-control"
@@ -116,6 +116,7 @@ resource "aws_lb" "rancher_lb" {
   access_logs {
     enabled         = "${var.rancher_lb_access_logs_enabled}"
     bucket          = "${var.rancher_lb_access_logs_bucket}"
+    prefix          = "${var.rancher_lb_access_logs_prefix}"
   }
 
   tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
