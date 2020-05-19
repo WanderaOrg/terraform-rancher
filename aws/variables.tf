@@ -110,7 +110,7 @@ variable "rancher_lb_access_logs_prefix" {
 }
 
 variable "node_exporter_version" {
-  default = "0.16.0"
+  default = "0.18.1"
 }
 
 variable "node_exporter_port" {
