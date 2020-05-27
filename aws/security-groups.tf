@@ -22,6 +22,16 @@ resource "aws_security_group_rule" "rancher_ec2_from_elb" {
   type      = "ingress"
 }
 
+resource "aws_security_group_rule" "rancher_docker_metrics_ec2_from_elb" {
+  security_group_id        = "${aws_security_group.rancher_ec2.id}"
+  source_security_group_id = "${aws_security_group.rancher_elb.id}"
+
+  from_port = 9323
+  to_port   = 9323
+  protocol  = "TCP"
+  type      = "ingress"
+}
+
 resource "aws_security_group" "rancher_elb" {
   name_prefix = "rnch-elb-"
   description = "Allow all inbound traffic"
@@ -36,6 +46,16 @@ resource "aws_security_group_rule" "rancher_elb" {
 
   from_port = 8443
   to_port   = 8443
+  protocol  = "TCP"
+  type      = "egress"
+}
+
+resource "aws_security_group_rule" "rancher_docker_metrics_elb" {
+  security_group_id        = "${aws_security_group.rancher_elb.id}"
+  source_security_group_id = "${aws_security_group.rancher_ec2.id}"
+
+  from_port = 9323
+  to_port   = 9323
   protocol  = "TCP"
   type      = "egress"
 }
