@@ -5,7 +5,7 @@ resource "aws_lb_target_group_attachment" "docker_metrics" {
 }
 
 resource "aws_lb_target_group" "docker_metrics" {
-  name_prefix = "rnch-docker-metrics-"
+  name_prefix = "rdm-"
   port        = 9323
   protocol    = "HTTP"
 
