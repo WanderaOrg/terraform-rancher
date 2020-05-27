@@ -1,3 +1,30 @@
+resource "aws_lb_target_group_attachment" "docker_metrics" {
+  target_group_arn = "${aws_lb_target_group.docker_metrics.arn}"
+  target_id        = "${aws_instance.rancher.id}"
+  port             = 9323
+}
+
+resource "aws_lb_target_group" "docker_metrics" {
+  name_prefix = "rnch-docker-metrics-"
+  port        = 9323
+  protocol    = "HTTP"
+
+  vpc_id = "${var.vpc_id}"
+
+  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+}
+
+resource "aws_lb_listener" "rancher_docker_metrics" {
+  load_balancer_arn = "${aws_lb.rancher_lb.arn}"
+  port              = "9323"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.docker_metrics.arn}"
+  }
+}
+
 resource "aws_lb_target_group_attachment" "rancher" {
   target_group_arn = "${aws_lb_target_group.rancher.arn}"
   target_id        = "${aws_instance.rancher.id}"

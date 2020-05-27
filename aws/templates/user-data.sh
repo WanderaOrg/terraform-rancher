@@ -67,7 +67,9 @@ docker_setup() {
   "log-opts": {
     "max-size": "10m",
     "max-file": "3"
-  }
+  },
+  "metrics-addr" : "0.0.0.0:9323",
+  "experimental" : true
 }
 EOF
 
