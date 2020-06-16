@@ -65,6 +65,7 @@ data "aws_elb_service_account" "default" {}
 data "aws_caller_identity" "default" {}
 
 resource "aws_s3_bucket_policy" "rancher_lb_access_logs" {
+  count  = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
   bucket = "${aws_s3_bucket.rancher_lb_access_logs.bucket}"
 
   policy = <<EOF
