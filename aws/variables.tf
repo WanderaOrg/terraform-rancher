@@ -5,7 +5,7 @@ variable "aws_region" {
 variable "vpc_id" {}
 
 variable "vpc_alb_subnet_ids" {
-  type = "list"
+  type = list(string)
 }
 
 # the subnet id should belond to the availability zone specified bellow
@@ -28,7 +28,7 @@ variable "acme_registration_email" {
 }
 
 variable "alb_security_groups" {
-  type = "list"
+  type = list(string)
 }
 
 variable "alb_idle_timeout" {
@@ -36,11 +36,11 @@ variable "alb_idle_timeout" {
 }
 
 variable "instance_security_groups" {
-  type = "list"
+  type = list(string)
 }
 
 variable "cloud_tags" {
-  type = "map"
+  type = map(string)
 }
 
 variable "rancher_instance_hostname" {
@@ -81,32 +81,32 @@ variable "rancher_storage_volume_size" {
 
 variable "rancher_create_cert" {
   description = "set to false if rancher elb cert is created outside the module"
-  default = true
+  default     = true
 }
 
 variable "rancher_elb_cert_arn" {
- description = "rancher elb cert to be passed in from outside the module"
- default = ""
+  description = "rancher elb cert to be passed in from outside the module"
+  default     = ""
 }
 
 variable "rancher_lb_access_logs_enabled" {
   description = "Rancher LB enable access logging to S3 bucket"
-  default = false
+  default     = false
 }
 
 variable "rancher_lb_access_logs_bucket" {
   description = "Rancher LB access logs S3 bucket name"
-  default = ""
+  default     = ""
 }
 
 variable "rancher_lb_access_logs_bucket_create" {
   description = "Create Rancher LB access logs S3 bucket"
-  default = false
+  default     = false
 }
 
 variable "rancher_lb_access_logs_prefix" {
   description = "Rancher LB access logs S3 bucke prefix"
-  default = "rancher"
+  default     = "rancher"
 }
 
 variable "node_exporter_version" {

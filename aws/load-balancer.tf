@@ -1,6 +1,6 @@
 resource "aws_lb_target_group_attachment" "rancher" {
-  target_group_arn = "${aws_lb_target_group.rancher.arn}"
-  target_id        = "${aws_instance.rancher.id}"
+  target_group_arn = aws_lb_target_group.rancher.arn
+  target_id        = aws_instance.rancher.id
   port             = 8443
 }
 
@@ -9,13 +9,13 @@ resource "aws_lb_target_group" "rancher" {
   port        = 8443
   protocol    = "HTTPS"
 
-  vpc_id = "${var.vpc_id}"
+  vpc_id = var.vpc_id
 
-  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+  tags = merge(map("Name", "rancher"), var.cloud_tags)
 }
 
 resource "aws_lb_listener" "rancher_http" {
-  load_balancer_arn = "${aws_lb.rancher_lb.arn}"
+  load_balancer_arn = aws_lb.rancher_lb.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -31,21 +31,21 @@ resource "aws_lb_listener" "rancher_http" {
 }
 
 resource "aws_lb_listener" "rancher_https" {
-  load_balancer_arn = "${aws_lb.rancher_lb.arn}"
+  load_balancer_arn = aws_lb.rancher_lb.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "${var.rancher_create_cert ? join("",aws_iam_server_certificate.rancher_elb_cert.*.arn) : var.rancher_elb_cert_arn}"
+  certificate_arn   = var.rancher_create_cert ? join("", aws_iam_server_certificate.rancher_elb_cert.*.arn) : var.rancher_elb_cert_arn
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.rancher.arn}"
+    target_group_arn = aws_lb_target_group.rancher.arn
   }
 }
 
 resource "aws_s3_bucket" "rancher_lb_access_logs" {
-  count         = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
-  bucket        = "${var.rancher_lb_access_logs_bucket}"
+  count         = var.rancher_lb_access_logs_bucket_create ? 1 : 0
+  bucket        = var.rancher_lb_access_logs_bucket
   acl           = "private"
   force_destroy = true
 
@@ -57,7 +57,7 @@ resource "aws_s3_bucket" "rancher_lb_access_logs" {
     }
   }
 
-  tags = "${merge(map("Name", "${var.rancher_lb_access_logs_bucket}"), var.cloud_tags)}"
+  tags = merge(map("Name", "${var.rancher_lb_access_logs_bucket}"), var.cloud_tags)
 }
 
 data "aws_elb_service_account" "default" {}
@@ -65,8 +65,8 @@ data "aws_elb_service_account" "default" {}
 data "aws_caller_identity" "default" {}
 
 resource "aws_s3_bucket_policy" "rancher_lb_access_logs" {
-  count  = "${var.rancher_lb_access_logs_bucket_create ? 1 : 0}"
-  bucket = "${aws_s3_bucket.rancher_lb_access_logs.bucket}"
+  count = var.rancher_lb_access_logs_bucket_create ? 1 : 0
+  bucket = aws_s3_bucket.rancher_lb_access_logs[count.index].bucket
 
   policy = <<EOF
 {
@@ -109,16 +109,16 @@ EOF
 # load balancer
 resource "aws_lb" "rancher_lb" {
   name_prefix        = "rnch-"
-  subnets            = ["${var.vpc_alb_subnet_ids}"]
-  security_groups    = ["${concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)}"]
+  subnets            = var.vpc_alb_subnet_ids
+  security_groups    = concat(list(aws_security_group.rancher_elb.id), var.alb_security_groups)
   load_balancer_type = "application"
-  idle_timeout       = "${var.alb_idle_timeout}"
+  idle_timeout       = var.alb_idle_timeout
 
   access_logs {
-    enabled         = "${var.rancher_lb_access_logs_enabled}"
-    bucket          = "${var.rancher_lb_access_logs_bucket}"
-    prefix          = "${var.rancher_lb_access_logs_prefix}"
+    enabled = var.rancher_lb_access_logs_enabled
+    bucket  = var.rancher_lb_access_logs_bucket
+    prefix  = var.rancher_lb_access_logs_prefix
   }
 
-  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+  tags = merge(map("Name", "rancher"), var.cloud_tags)
 }
