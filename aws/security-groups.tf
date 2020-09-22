@@ -1,6 +1,6 @@
 resource "aws_security_group" "rancher_ec2" {
   name_prefix = "rnch-ec2-"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   egress {
     from_port   = 0
@@ -9,12 +9,12 @@ resource "aws_security_group" "rancher_ec2" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+  tags = merge(map("Name", "rancher"), var.cloud_tags)
 }
 
 resource "aws_security_group_rule" "rancher_ec2_from_elb" {
-  security_group_id        = "${aws_security_group.rancher_ec2.id}"
-  source_security_group_id = "${aws_security_group.rancher_elb.id}"
+  security_group_id        = aws_security_group.rancher_ec2.id
+  source_security_group_id = aws_security_group.rancher_elb.id
 
   from_port = 8443
   to_port   = 8443
@@ -25,14 +25,14 @@ resource "aws_security_group_rule" "rancher_ec2_from_elb" {
 resource "aws_security_group" "rancher_elb" {
   name_prefix = "rnch-elb-"
   description = "Allow all inbound traffic"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
-  tags = "${merge(map("Name", "rancher"), var.cloud_tags)}"
+  tags = merge(map("Name", "rancher"), var.cloud_tags)
 }
 
 resource "aws_security_group_rule" "rancher_elb" {
-  security_group_id        = "${aws_security_group.rancher_elb.id}"
-  source_security_group_id = "${aws_security_group.rancher_ec2.id}"
+  security_group_id        = aws_security_group.rancher_elb.id
+  source_security_group_id = aws_security_group.rancher_ec2.id
 
   from_port = 8443
   to_port   = 8443
