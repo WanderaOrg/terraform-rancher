@@ -9,7 +9,9 @@ resource "aws_security_group" "rancher_ec2" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(map("Name", "rancher"), var.cloud_tags)
+  tags = merge(var.cloud_tags, {
+    "Name" = "rancher"
+  })
 }
 
 resource "aws_security_group_rule" "rancher_ec2_from_elb" {
@@ -27,7 +29,9 @@ resource "aws_security_group" "rancher_elb" {
   description = "Allow all inbound traffic"
   vpc_id      = var.vpc_id
 
-  tags = merge(map("Name", "rancher"), var.cloud_tags)
+  tags = merge(var.cloud_tags, {
+    "Name" = "rancher"
+  })
 }
 
 resource "aws_security_group_rule" "rancher_elb" {

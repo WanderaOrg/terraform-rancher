@@ -1,8 +1,11 @@
 resource "aws_ebs_volume" "rancher_ebs" {
   availability_zone = var.availability_zone
   size              = var.rancher_storage_volume_size
-  tags              = merge(map("Name", "rancher"), var.cloud_tags)
   type              = var.rancher_storage_volume_type
+
+  tags = merge(var.cloud_tags, {
+    "Name" = "rancher"
+  })
 }
 
 resource "aws_volume_attachment" "ebs_att" {
@@ -15,34 +18,33 @@ data "template_file" "user_data" {
   template = file("${path.module}/templates/user-data.sh")
 
   vars = {
-    rancher_version          = "${var.rancher_version}"
-    rancher_hostname         = "${var.rancher_instance_hostname}"
-    rancher_image            = "${var.rancher_image}"
-    node_exporter_version    = "${var.node_exporter_version}"
-    node_exporter_port       = "${var.node_exporter_port}"
-    node_exporter_path       = "${var.node_exporter_path}"
-    node_exporter_collectors = "${join(" ", var.node_exporter_collectors)}"
-    s3_backup_key            = "${var.s3_backup_key}"
-    s3_backup_secret         = "${var.s3_backup_secret}"
-    s3_backup_region         = "${var.s3_backup_region}"
-    s3_backup_bucket         = "${var.s3_backup_bucket}"
-    s3_backup_filename       = "${var.s3_backup_filename}"
-    s3_backup_schedule       = "${var.s3_backup_schedule}"
-    s3_backup_restore        = "${var.s3_backup_restore}"
-    fluentd_image            = "${var.fluentd_image}"
-    fluentd_config           = "${var.fluentd_config}"
-    grok_pattern             = "${var.grok_pattern}"
-    grok_patterns_file       = "${var.grok_patterns_file}"
+    rancher_version          = var.rancher_version
+    rancher_hostname         = var.rancher_instance_hostname
+    rancher_image            = var.rancher_image
+    node_exporter_version    = var.node_exporter_version
+    node_exporter_port       = var.node_exporter_port
+    node_exporter_path       = var.node_exporter_path
+    node_exporter_collectors = join(" ", var.node_exporter_collectors)
+    s3_backup_key            = var.s3_backup_key
+    s3_backup_secret         = var.s3_backup_secret
+    s3_backup_region         = var.s3_backup_region
+    s3_backup_bucket         = var.s3_backup_bucket
+    s3_backup_filename       = var.s3_backup_filename
+    s3_backup_schedule       = var.s3_backup_schedule
+    s3_backup_restore        = var.s3_backup_restore
+    fluentd_image            = var.fluentd_image
+    fluentd_config           = var.fluentd_config
+    grok_pattern             = var.grok_pattern
+    grok_patterns_file       = var.grok_patterns_file
   }
 }
 
 resource "aws_instance" "rancher" {
-  ami               = var.rancher_ami
-  instance_type     = var.rancher_instance_type
-  availability_zone = var.availability_zone
-  subnet_id         = var.vpc_rancher_subnet_id
-  private_ip        = var.rancher_private_ip
-  key_name          = aws_key_pair.rancher-key.key_name
+  ami           = var.rancher_ami
+  instance_type = var.rancher_instance_type
+  subnet_id     = var.vpc_rancher_subnet_id
+  private_ip    = var.rancher_private_ip
+  key_name      = aws_key_pair.rancher-key.key_name
 
   vpc_security_group_ids = concat(list(aws_security_group.rancher_ec2.id), var.instance_security_groups)
 
@@ -52,9 +54,11 @@ resource "aws_instance" "rancher" {
     delete_on_termination = true
   }
 
-  user_data = base64encode("${data.template_file.user_data.rendered}")
+  user_data = base64encode(data.template_file.user_data.rendered)
 
-  tags = merge(map("Name", "rancher"), var.cloud_tags)
+  tags = merge(var.cloud_tags, {
+    "Name" = "rancher"
+  })
 }
 
 resource "aws_key_pair" "rancher-key" {
