@@ -11,7 +11,9 @@ resource "aws_lb_target_group" "rancher" {
 
   vpc_id = var.vpc_id
 
-  tags = merge(map("Name", "rancher"), var.cloud_tags)
+  tags = merge(var.cloud_tags, {
+    "Name" = "rancher"
+  })
 }
 
 resource "aws_lb_listener" "rancher_http" {
@@ -57,7 +59,9 @@ resource "aws_s3_bucket" "rancher_lb_access_logs" {
     }
   }
 
-  tags = merge(map("Name", "${var.rancher_lb_access_logs_bucket}"), var.cloud_tags)
+  tags = merge(var.cloud_tags, {
+    "Name" = var.rancher_lb_access_logs_bucket
+  })
 }
 
 data "aws_elb_service_account" "default" {}
@@ -65,7 +69,7 @@ data "aws_elb_service_account" "default" {}
 data "aws_caller_identity" "default" {}
 
 resource "aws_s3_bucket_policy" "rancher_lb_access_logs" {
-  count = var.rancher_lb_access_logs_bucket_create ? 1 : 0
+  count  = var.rancher_lb_access_logs_bucket_create ? 1 : 0
   bucket = aws_s3_bucket.rancher_lb_access_logs[count.index].bucket
 
   policy = <<EOF
@@ -120,5 +124,7 @@ resource "aws_lb" "rancher_lb" {
     prefix  = var.rancher_lb_access_logs_prefix
   }
 
-  tags = merge(map("Name", "rancher"), var.cloud_tags)
+  tags = merge(var.cloud_tags, {
+    "Name" = "rancher"
+  })
 }

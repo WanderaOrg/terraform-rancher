@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     acme = {
-      source = "terraform-providers/acme"
+      source = "vancluever/acme"
     }
     aws = {
       source = "hashicorp/aws"

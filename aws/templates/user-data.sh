@@ -173,7 +173,7 @@ etcd_backup_setup () {
   echo "Installing s4cmd"
   DEBIAN_FRONTEND=noninteractive apt install s4cmd -y
 
-  if [[ "${s3_backup_restore}" -eq "1" ]]; then
+  if [[ "${s3_backup_restore ? 1 : 0}" -eq "1" ]]; then
     until docker inspect -f '{{.Id}}' rancher-v${rancher_version}; do echo 'Rancher not ready yet ...'; sleep 5;  done
     etcd_backup_restore
   fi
